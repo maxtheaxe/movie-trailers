@@ -54,10 +54,10 @@ def youtube_search(driver: webdriver.Chrome, movie_title: str, num_results: int 
 	# wait for the last element to load fully
 	try:  # look for filters menu as indicator of load (we know it will always be there)
 		wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
-		# feature used below doesn't exist yet, but I've implemented it my local version
-		# and submitted a pull request to the main repo on github:
-		# https://github.com/SeleniumHQ/selenium/pull/9374
-		element = wait.until(EC.element_to_be_clickable(results[-1]))  # target last video
+		# would rather check clickability, but not implemented--I implemented it myself
+		# and use it in the selenium-ec-expansion branch (submitted pull request here:
+		# https://github.com/SeleniumHQ/selenium/pull/9374)
+		element = wait.until(EC.visibility_of(results[-1]))  # target last video
 	except NoSuchElementException as Error:  # page didn't load in a reasonable amount of time
 		print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
 		print("\n\t{}\n".format(str(Error)))
@@ -90,7 +90,7 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 	try:  # wait for first suggestion to load
 		wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
 		# _located() should be removed if using stable selenium
-		first_suggestion = wait.until(EC.element_to_be_clickable_located(
+		first_suggestion = wait.until(EC.element_to_be_clickable(
 			(By.ID, "react-autowhatever-1--item-0")))  # id of first item is consistent
 		first_suggestion.click() # navigate to suggested page
 	except NoSuchElementException as Error:  # page didn't load in a reasonable amount of time
@@ -105,7 +105,7 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 	while len(video_links) < num_results:
 		try: # wait for first video to be clickable as indicator of page load
 			wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
-			element = wait.until(EC.element_to_be_clickable_located(
+			element = wait.until(EC.element_to_be_clickable(
 				(By.XPATH, "//h2/a[@class='video-modal']")))  # first video clickable
 		except NoSuchElementException as Error:  # page didn't load in a reasonable amount of time
 			print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
@@ -137,7 +137,6 @@ def search_movie(driver: webdriver.Chrome, site_name: str, movie_title: str) -> 
 
 	Returns:
 		list
-
 	'''
 	if site_name == "imdb":
 		return imdb_search(driver, movie_title)
