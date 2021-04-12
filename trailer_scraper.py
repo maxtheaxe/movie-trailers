@@ -89,8 +89,7 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 	# wait for first suggestion to load, click first one (react-autowhatever-1--item-0)
 	try:  # wait for first suggestion to load
 		wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
-		# _located() should be removed if using stable selenium
-		first_suggestion = wait.until(EC.element_to_be_clickable_located(
+		first_suggestion = wait.until(EC.element_to_be_clickable(
 			(By.ID, "react-autowhatever-1--item-0")))  # id of first item is consistent
 		first_suggestion.click() # navigate to suggested page
 	except NoSuchElementException as Error:  # page didn't load in a reasonable amount of time
@@ -105,7 +104,7 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 	while len(video_links) < num_results:
 		try: # wait for first video to be clickable as indicator of page load
 			wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
-			element = wait.until(EC.element_to_be_clickable_located(
+			element = wait.until(EC.element_to_be_clickable(
 				(By.XPATH, "//h2/a[@class='video-modal']")))  # first video clickable
 		except NoSuchElementException as Error:  # page didn't load in a reasonable amount of time
 			print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
