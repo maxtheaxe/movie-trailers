@@ -4,11 +4,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import chromedriver_autoinstaller as cda  # handle chromedriver for new installs
 from bs4 import BeautifulSoup
-import time
 
 
 def start_driver(headless: bool = True) -> webdriver.Chrome:
@@ -59,7 +57,7 @@ def youtube_search(driver: webdriver.Chrome, movie_title: str, num_results: int 
 		# and submitted a pull request to the main repo on github:
 		# https://github.com/SeleniumHQ/selenium/pull/9374
 		element = wait.until(EC.element_to_be_clickable(results[-1]))  # target last video
-	except TimeoutException as Error:  # page didn't load in a reasonable amount of time
+	except (TimeoutException, NoSuchElementException) as Error:  # page didn't load in a reasonable amount of time
 		print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
 		print("\n\t{}\n".format(str(Error)))
 	# grab the source of the page and parse it, build list of video links
@@ -93,14 +91,14 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 		first_suggestion = wait.until(EC.element_to_be_clickable(
 			(By.ID, "react-autowhatever-1--item-0")))  # id of first item is consistent
 		first_suggestion.click() # navigate to suggested page
-	except TimeoutException as Error:  # either page didn't load or no results
+	except (TimeoutException, NoSuchElementException) as Error:  # either page didn't load or no results
 		# wait for no results indicator to load
 		try:  # wait for first suggestion to load
 			wait = WebDriverWait(driver, 3)  # wait a maximum of 3 seconds for load
 			no_result = wait.until(EC.visibility_of_element_located((By.XPATH,
 				"//div[text()='No results found.']")))
 			return []  # no valid movie found, so skip video collection
-		except TimeoutException as Error:  # page didn't load in a reasonable amount of time
+		except (TimeoutException, NoSuchElementException) as Error:  # page didn't load in a reasonable amount of time
 			print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
 			print("\n\t{}\n".format(str(Error)))
 	driver.find_element_by_xpath(
@@ -114,13 +112,13 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 			wait = WebDriverWait(driver, 10)  # wait a maximum of 10 seconds for load
 			element = wait.until(EC.element_to_be_clickable(
 				(By.XPATH, "//h2/a[@class='video-modal']")))  # first video clickable
-		except TimeoutException: # either page didn't load or no video results
+		except (TimeoutException, NoSuchElementException): # either page didn't load or no video results
 			try: # look for no videos indicator
 				wait = WebDriverWait(driver, 3)  # wait a maximum of 3 seconds for load
 				no_result = wait.until(EC.visibility_of_element_located((By.XPATH,
 					"//div[@class='ilm_notice']//p")))
 				return []  # no valid videos found, so return empty list
-			except TimeoutException as Error: # page didn't load in a reasonable amount of time
+			except (TimeoutException, NoSuchElementException) as Error: # page didn't load in a reasonable amount of time
 				print("\n\tError: Page didn't load in a reasonable amount of time; try again.\n")
 				print("\n\t{}\n".format(str(Error)))
 		# grab the source of the page and parse it, build list of video links
@@ -133,7 +131,7 @@ def imdb_search(driver: webdriver.Chrome, movie_title: str, num_results: int = 1
 		# move onto next page if it exists
 		try: # try clicking the "next page" button
 			driver.find_element_by_xpath("//a[text()='Next »']").click()
-		except TimeoutException: # button no longer exist--must be on last page
+		except (TimeoutException, NoSuchElementException): # button no longer exist--must be on last page
 			break # no more results left
 	print('number collected: ', len(video_links), '\n\n', video_links)
 	return video_links[:100] # return the first 100 video links
